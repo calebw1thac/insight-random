@@ -127,13 +127,55 @@
 let topics = [];
 let lastIndex = -1;
 
-async function loadTopics() {
-  const res = await fetch('./insight_volume1_topics_PARAGRAPHS.json');
-if (!res.ok) {
-  throw new Error(`Failed to load JSON: ${res.status}`);
+function showError(msg) {
+  document.getElementById('title').textContent = 'Loading failed';
+  document.getElementById('meta').textContent = '';
+  document.getElementById('content').innerHTML =
+    `<div class="paragraph" style="border:1px solid rgba(255,255,255,.15); padding:12px; border-radius:12px;">
+      <b>Error:</b> ${msg}<br><br>
+      <b>Fix:</b> Make sure you are opening this page over <code>http(s)</code> and that the JSON file is in the same folder as <code>index.html</code>.
+    </div>`;
 }
-topics = await res.json();
-  randomTopic();
+
+async function fetchWithFallback(paths) {
+  let lastErr = null;
+  for (const p of paths) {
+    try {
+      const res = await fetch(p, { cache: "no-store" });
+      if (!res.ok) throw new Error(`${p} → HTTP ${res.status}`);
+      const data = await res.json();
+      if (!Array.isArray(data) || !data.length) throw new Error(`${p} → JSON loaded but empty/invalid`);
+      return data;
+    } catch (e) {
+      lastErr = e;
+    }
+  }
+  throw lastErr || new Error("Unknown fetch error");
+}
+
+async function loadTopics() {
+  document.getElementById('title').textContent = 'Loading…';
+  document.getElementById('content').innerHTML = '';
+
+  // ✅ Use the CLEAN file you generated
+  const filename = "insight_volume1_topics_PARAGRAPHS_CLEAN.json";
+
+  // Try paths that work for:
+  // - same-folder hosting
+  // - GitHub Pages (repo subpath)
+  const repo = location.pathname.split('/').filter(Boolean)[0]; // e.g. "insight-random"
+  const candidates = [
+    `./${filename}`,
+    `/${filename}`,
+    repo ? `/${repo}/${filename}` : null
+  ].filter(Boolean);
+
+  try {
+    topics = await fetchWithFallback(candidates);
+    randomTopic();
+  } catch (e) {
+    showError(e.message || String(e));
+  }
 }
 
 function randomTopic() {
@@ -154,25 +196,19 @@ function randomTopic() {
   const content = document.getElementById('content');
   content.innerHTML = '';
 
-  t.paragraphs.forEach(p => {
+  (t.paragraphs || []).forEach(p => {
     const div = document.createElement('div');
     div.className = 'paragraph';
     div.textContent = p;
     content.appendChild(div);
   });
-
-
 }
 
 document.getElementById('randomBtn').addEventListener('click', randomTopic);
 
 // Swipe support (iPhone)
 let startY = null;
-
-window.addEventListener('touchstart', e => {
-  startY = e.touches[0].clientY;
-}, {passive:true});
-
+window.addEventListener('touchstart', e => { startY = e.touches[0].clientY; }, {passive:true});
 window.addEventListener('touchend', e => {
   if (startY === null) return;
   const dy = e.changedTouches[0].clientY - startY;
@@ -180,16 +216,9 @@ window.addEventListener('touchend', e => {
   if (Math.abs(dy) > 40) randomTopic();
 }, {passive:true});
 
-// Keyboard
-window.addEventListener('keydown', e => {
-  if ([' ', 'ArrowDown', 'ArrowUp'].includes(e.key)) {
-    e.preventDefault();
-    randomTopic();
-  }
-});
-
 loadTopics();
 </script>
+
 
 </body>
 </html>
