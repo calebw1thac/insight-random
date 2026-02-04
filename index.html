@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Insight – Random Topic</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <style>
+    :root {
+      --bg:#0b0d12;
+      --card:#141826;
+      --text:#eef1ff;
+      --muted:#b8c0ff;
+      --accent:#7aa2ff;
+    }
+
+    body {
+      margin:0;
+      font-family: system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background: radial-gradient(1200px 600px at 50% 0%, #1a2550, var(--bg));
+      color:var(--text);
+      height:100vh;
+      overflow:hidden;
+    }
+
+    header {
+      position:fixed;
+      top:0; left:0; right:0;
+      padding:14px 16px;
+      backdrop-filter: blur(12px);
+      background: rgba(11,13,18,.6);
+      border-bottom:1px solid rgba(255,255,255,.08);
+      z-index:10;
+    }
+
+    header h1 {
+      font-size:16px;
+      margin:0;
+      font-weight:700;
+    }
+
+    header p {
+      margin:4px 0 0;
+      font-size:12px;
+      color:var(--muted);
+    }
+
+    main {
+      height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:90px 14px 14px;
+    }
+
+    .card {
+      width:min(820px,94vw);
+      max-height:88vh;
+      overflow-y:auto;
+      background: linear-gradient(180deg, rgba(20,24,38,.9), rgba(20,24,38,.7));
+      border:1px solid rgba(255,255,255,.1);
+      border-radius:20px;
+      padding:20px;
+      box-shadow:0 20px 60px rgba(0,0,0,.55);
+    }
+
+    .title {
+      font-size:28px;
+      font-weight:800;
+      margin-bottom:10px;
+    }
+
+    .meta {
+      font-size:12px;
+      color:var(--muted);
+      margin-bottom:14px;
+    }
+
+    .paragraph {
+      font-size:16px;
+      line-height:1.55;
+      margin-bottom:14px;
+    }
+
+    .controls {
+      position:fixed;
+      bottom:14px;
+      left:0; right:0;
+      display:flex;
+      justify-content:center;
+      gap:12px;
+      z-index:10;
+    }
+
+    button {
+      font-size:15px;
+      font-weight:700;
+      padding:12px 16px;
+      border-radius:14px;
+      border:1px solid rgba(122,162,255,.4);
+      background:rgba(122,162,255,.18);
+      color:var(--text);
+      cursor:pointer;
+    }
+
+    button:active { transform:scale(.97); }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Insight on the Scriptures</h1>
+  <p>Swipe / tap for a random topic (offline)</p>
+</header>
+
+<main>
+  <div class="card" id="card">
+    <div class="title" id="title">Loading…</div>
+    <div class="meta" id="meta"></div>
+    <div id="content"></div>
+  </div>
+</main>
+
+<div class="controls">
+  <button id="randomBtn">🎲 Random Topic</button>
+</div>
+
+<script>
+let topics = [];
+let lastIndex = -1;
+
+async function loadTopics() {
+  const res = await fetch('./insight_volume1_topics_PARAGRAPHS.json');
+if (!res.ok) {
+  throw new Error(`Failed to load JSON: ${res.status}`);
+}
+topics = await res.json();
+  randomTopic();
+}
+
+function randomTopic() {
+  if (!topics.length) return;
+
+  let idx;
+  do {
+    idx = Math.floor(Math.random() * topics.length);
+  } while (idx === lastIndex && topics.length > 1);
+
+  lastIndex = idx;
+  const t = topics[idx];
+
+  document.getElementById('title').textContent = t.title;
+  document.getElementById('meta').textContent =
+    `Volume ${t.volume} · PDF pages ${t.pdf_page_start}–${t.pdf_page_end}`;
+
+  const content = document.getElementById('content');
+  content.innerHTML = '';
+
+  t.paragraphs.forEach(p => {
+    const div = document.createElement('div');
+    div.className = 'paragraph';
+    div.textContent = p;
+    content.appendChild(div);
+  });
+
+  document.getElementById('card').scrollTop = 0;
+}
+
+document.getElementById('randomBtn').addEventListener('click', randomTopic);
+
+// Swipe support (iPhone)
+let startY = null;
+
+window.addEventListener('touchstart', e => {
+  startY = e.touches[0].clientY;
+}, {passive:true});
+
+window.addEventListener('touchend', e => {
+  if (startY === null) return;
+  const dy = e.changedTouches[0].clientY - startY;
+  startY = null;
+  if (Math.abs(dy) > 40) randomTopic();
+}, {passive:true});
+
+// Keyboard
+window.addEventListener('keydown', e => {
+  if ([' ', 'ArrowDown', 'ArrowUp'].includes(e.key)) {
+    e.preventDefault();
+    randomTopic();
+  }
+});
+
+loadTopics();
+</script>
+
+</body>
+</html>
