@@ -19,7 +19,8 @@
       background: radial-gradient(1200px 600px at 50% 0%, #1a2550, var(--bg));
       color:var(--text);
       height:100vh;
-      overflow:hidden;
+      overflow-y: auto;
+
     }
 
     header {
@@ -53,9 +54,7 @@
     }
 
     .card {
-      width:min(820px,94vw);
-      max-height:88vh;
-      overflow-y:auto;
+      width: min(820px, 94vw);
       background: linear-gradient(180deg, rgba(20,24,38,.9), rgba(20,24,38,.7));
       border:1px solid rgba(255,255,255,.1);
       border-radius:20px;
@@ -162,7 +161,7 @@ function randomTopic() {
     content.appendChild(div);
   });
 
-  document.getElementById('card').scrollTop = 0;
+
 }
 
 document.getElementById('randomBtn').addEventListener('click', randomTopic);
