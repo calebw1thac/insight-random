@@ -2,328 +2,307 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#0b0d12" />
-  <title>Insight Random Topic</title>
-
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Insight Random Topic Generator</title>
   <style>
-    :root {
-      --bg: #0b0d12;
-      --panel: #141826;
-      --text: #eef1ff;
-      --muted: rgba(238,241,255,.72);
-      --border: rgba(255,255,255,.10);
-      --accent: rgba(122,162,255,.22);
-      --accentBorder: rgba(122,162,255,.40);
+    body { font-family: -apple-system, system-ui, Arial, sans-serif; margin: 0; background: #0b0b0f; color: #f4f4f6; }
+    header { padding: 18px 16px; position: sticky; top: 0; background: rgba(11,11,15,.9); backdrop-filter: blur(10px); border-bottom: 1px solid #222; }
+    h1 { margin: 0 0 10px; font-size: 18px; font-weight: 700; letter-spacing: .2px; }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    input[type="search"]{
+      flex: 1; min-width: 240px; padding: 10px 12px; border-radius: 10px;
+      border: 1px solid #2a2a33; background: #12121a; color: #f4f4f6;
+      outline: none;
     }
-
-    * { box-sizing: border-box; }
-
-    html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      background: var(--bg);
-      color: var(--text);
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    button{
+      padding: 10px 12px; border-radius: 10px; border: 1px solid #2a2a33;
+      background: #171723; color: #f4f4f6; cursor: pointer;
     }
-
-    /* One single scroll container for iOS reliability */
-    .app {
-      height: 100dvh; /* iOS 16+ correct viewport */
-      display: flex;
-      flex-direction: column;
-      background: radial-gradient(1200px 600px at 50% 0%, #1a2550, var(--bg));
-    }
-
-    header {
-      position: sticky; /* safer than fixed on iOS */
-      top: 0;
-      z-index: 10;
-      padding: calc(12px + env(safe-area-inset-top)) 14px 12px;
-      backdrop-filter: blur(12px);
-      background: rgba(11,13,18,.70);
-      border-bottom: 1px solid var(--border);
-    }
-
-    .headerRow {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-    }
-
-    .titleWrap { display:flex; flex-direction:column; gap:4px; }
-    .title { font-size: 16px; font-weight: 800; letter-spacing:.2px; }
-    .sub { font-size: 12px; color: var(--muted); }
-
-    .btnRow { display:flex; gap:10px; align-items:center; }
-    button {
-      appearance: none;
-      border: 1px solid var(--accentBorder);
-      background: var(--accent);
-      color: var(--text);
-      border-radius: 14px;
-      padding: 11px 14px;
-      font-size: 14px;
-      font-weight: 750;
-      cursor: pointer;
-      user-select: none;
-    }
-    button:active { transform: scale(.98); }
-
-    .pill {
-      border: 1px solid rgba(255,255,255,.14);
-      background: rgba(255,255,255,.06);
-      color: rgba(238,241,255,.85);
-      padding: 8px 10px;
-      border-radius: 999px;
-      font-size: 12px;
-      font-weight: 700;
-      white-space: nowrap;
-    }
-
-    /* This is the ONLY scroller */
-    .scroll {
-      flex: 1;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-      padding: 14px;
-      padding-bottom: calc(18px + env(safe-area-inset-bottom));
-    }
-
-    .card {
-      width: min(900px, 100%);
-      margin: 0 auto;
-      background: linear-gradient(180deg, rgba(20,24,38,.92), rgba(20,24,38,.72));
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      box-shadow: 0 18px 60px rgba(0,0,0,.55);
-      padding: 18px;
-    }
-
-    .topicTitle {
-      font-size: clamp(22px, 3.2vw, 34px);
-      line-height: 1.15;
-      font-weight: 900;
-      margin: 6px 0 10px;
-    }
-
-    .meta {
-      font-size: 12px;
-      color: var(--muted);
-      display:flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-bottom: 14px;
-    }
-
-    .para {
-      font-size: 16px;
-      line-height: 1.65;
-      margin: 0 0 14px;
-      color: rgba(238,241,255,.92);
-    }
-
-    .errorBox {
-      border: 1px solid rgba(255,255,255,.14);
-      background: rgba(255,255,255,.06);
-      border-radius: 14px;
-      padding: 12px;
-      color: rgba(238,241,255,.92);
-      font-size: 14px;
-      line-height: 1.5;
-      margin-top: 10px;
-      word-break: break-word;
-    }
-
-    .footerHint {
-      width: min(900px, 100%);
-      margin: 10px auto 0;
-      color: var(--muted);
-      font-size: 12px;
-      display:flex;
-      justify-content: space-between;
-      gap: 10px;
-      flex-wrap: wrap;
-      padding: 0 4px;
-    }
-
-    code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    button:hover{ background:#1c1c2b; }
+    button:disabled{ opacity:.5; cursor:not-allowed; }
+    main { padding: 18px 16px 80px; max-width: 980px; margin: 0 auto; }
+    .meta { color: #b7b7c8; font-size: 13px; margin-top: 6px; }
+    .card { background: #12121a; border: 1px solid #242433; border-radius: 14px; padding: 14px; margin-top: 14px; }
+    .topic-title { font-size: 22px; margin: 0; }
+    .pill { display:inline-block; padding: 4px 10px; border: 1px solid #2a2a33; border-radius: 999px; font-size: 12px; color:#cfcfe6; margin-right:8px; }
+    .section { margin-top: 14px; }
+    .section h3 { margin: 0 0 8px; font-size: 14px; letter-spacing: .2px; color: #d9d9ff; }
+    .para { line-height: 1.45; margin: 8px 0; color:#f1f1ff; }
+    .muted { color:#b7b7c8; }
+    .toast { position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+      background:#1a1a27; border:1px solid #2a2a33; color:#fff;
+      padding:10px 12px; border-radius: 999px; display:none; }
+    .list { margin-top: 10px; }
+    .list button { width:100%; text-align:left; padding: 10px 12px; margin-top:8px; }
+    .kbd { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; padding: 2px 6px; border:1px solid #2a2a33; border-radius:6px; color:#cfcfe6; }
   </style>
 </head>
-
 <body>
-  <div class="app" id="app">
-    <header>
-      <div class="headerRow">
-        <div class="titleWrap">
-          <div class="title">Insight – Random Topic</div>
-          <div class="sub">Swipe anywhere to randomize • Scroll normally to read</div>
-        </div>
+<header>
+  <h1>Insight Random Topic Generator</h1>
+  <div class="row">
+    <input id="q" type="search" placeholder="Search topics… (e.g., Jehovah, Abaddon, Faith)" autocomplete="off" />
+    <button id="randomBtn" title="Random topic (R)">🎲 Random</button>
+    <button id="prevBtn" title="Back (←)" disabled>← Back</button>
+    <button id="nextBtn" title="Forward (→)" disabled>Forward →</button>
+    <button id="copyBtn" title="Copy share link">🔗 Copy link</button>
+  </div>
+  <div class="meta">
+    Tips: <span class="kbd">R</span> random • <span class="kbd">/</span> focus search • <span class="kbd">Enter</span> open top result
+  </div>
+</header>
 
-        <div class="btnRow">
-          <span class="pill" id="statusPill">Loading…</span>
-          <button id="randomBtn">🎲 Random</button>
-        </div>
-      </div>
-    </header>
+<main>
+  <div id="status" class="muted">Loading data…</div>
 
-    <div class="scroll" id="scroll">
-      <div class="card">
-        <div class="topicTitle" id="topicTitle">Loading…</div>
-        <div class="meta" id="meta"></div>
-        <div id="content"></div>
-      </div>
-
-      <div class="footerHint" id="footerHint">
-        <div>Tip: Add to Home Screen for an app-like feel.</div>
-        <div id="countHint">Topics: …</div>
-      </div>
-    </div>
+  <div id="resultCard" class="card" style="display:none;">
+    <div class="meta" id="metaLine"></div>
+    <h2 class="topic-title" id="topicTitle"></h2>
+    <div id="content"></div>
   </div>
 
-  <script>
-    // ===== CONFIG =====
-    const FILENAME = "insight_volume1_topics_PARAGRAPHS_CLEAN.json"; // make sure this matches your file
+  <div id="searchResults" class="card" style="display:none;">
+    <div class="meta">Search results</div>
+    <div id="resultsList" class="list"></div>
+  </div>
+</main>
 
-    // ===== STATE =====
-    let topics = [];
-    let lastIndex = -1;
+<div id="toast" class="toast"></div>
 
-    // ===== UI HELPERS =====
-    const el = (id) => document.getElementById(id);
+<script>
+  const DATA_FILE = "insight_topics_5053.json";
 
-    function setStatus(text) {
-      el("statusPill").textContent = text;
+  let DB = null;             // full JSON
+  let topics = [];           // DB.topics
+  let topicsById = new Map();
+  let currentId = null;
+
+  // history navigation
+  let historyIds = [];
+  let historyPos = -1;
+
+  const $ = (id) => document.getElementById(id);
+  const statusEl = $("status");
+  const cardEl = $("resultCard");
+  const metaEl = $("metaLine");
+  const titleEl = $("topicTitle");
+  const contentEl = $("content");
+  const resultsWrap = $("searchResults");
+  const resultsList = $("resultsList");
+  const qEl = $("q");
+  const prevBtn = $("prevBtn");
+  const nextBtn = $("nextBtn");
+  const randomBtn = $("randomBtn");
+  const copyBtn = $("copyBtn");
+
+  function toast(msg){
+    const t = $("toast");
+    t.textContent = msg;
+    t.style.display = "block";
+    setTimeout(()=> t.style.display="none", 1600);
+  }
+
+  function normalize(s){
+    return (s || "")
+      .toLowerCase()
+      .replace(/[’‘]/g,"'")
+      .replace(/\s+/g," ")
+      .trim();
+  }
+
+  function setNavButtons(){
+    prevBtn.disabled = !(historyPos > 0);
+    nextBtn.disabled = !(historyPos >= 0 && historyPos < historyIds.length - 1);
+  }
+
+  function pushHistory(id){
+    // if user goes back then picks a new topic, truncate forward history
+    if (historyPos < historyIds.length - 1) {
+      historyIds = historyIds.slice(0, historyPos + 1);
     }
+    historyIds.push(id);
+    historyPos = historyIds.length - 1;
+    setNavButtons();
+  }
 
-    function showError(message) {
-      setStatus("Error");
-      el("topicTitle").textContent = "Couldn’t load topics";
-      el("meta").textContent = "";
-      el("content").innerHTML = `
-        <div class="errorBox">
-          <b>Error:</b> ${escapeHtml(message)}<br><br>
-          <b>Fix checklist:</b><br>
-          • Open this page over <code>http(s)</code> (not <code>file://</code>)<br>
-          • Put <code>${FILENAME}</code> in the same folder as <code>index.html</code><br>
-          • Verify the JSON opens directly in your browser at <code>.../${FILENAME}</code>
-        </div>
-      `;
-    }
+  function renderTopic(id, {push=true} = {}){
+    const t = topicsById.get(id);
+    if (!t) return;
 
-    function escapeHtml(str) {
-      return String(str)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
-    }
+    currentId = id;
+    if (push) pushHistory(id);
 
-    // ===== DATA LOADING (with fallbacks) =====
-    async function fetchWithFallback(paths) {
-      let lastErr = null;
-      for (const p of paths) {
-        try {
-          const res = await fetch(p, { cache: "no-store" });
-          if (!res.ok) throw new Error(`${p} → HTTP ${res.status}`);
-          const data = await res.json();
-          if (!Array.isArray(data) || !data.length) throw new Error(`${p} → JSON loaded but empty/invalid`);
-          return data;
-        } catch (e) {
-          lastErr = e;
+    // update URL hash for share links
+    location.hash = `#topic=${encodeURIComponent(String(id))}`;
+
+    // hide search results
+    resultsWrap.style.display = "none";
+
+    // header/meta
+    titleEl.textContent = t.topic || "(Untitled)";
+    const vols = (t.volumes && t.volumes.length) ? `Vol: ${t.volumes.join(", ")}` : "Vol: —";
+    const secCount = Array.isArray(t.sections) ? t.sections.length : 0;
+    metaEl.innerHTML = `
+      <span class="pill">Topic ID: ${t.topic_id}</span>
+      <span class="pill">${vols}</span>
+      <span class="pill">Sections: ${secCount}</span>
+    `;
+
+    // content
+    contentEl.innerHTML = "";
+    const sections = Array.isArray(t.sections) ? t.sections : [];
+
+    if (!sections.length) {
+      const div = document.createElement("div");
+      div.className = "section";
+      div.innerHTML = `<p class="para muted">No extracted text for this topic (some entries are index/redirect topics). Try another topic or search related ones.</p>`;
+      contentEl.appendChild(div);
+    } else {
+      for (const s of sections) {
+        const wrap = document.createElement("div");
+        wrap.className = "section";
+
+        if (s.type === "subheading" && s.heading) {
+          wrap.innerHTML += `<h3>${escapeHtml(s.heading)}</h3>`;
+        } else if (s.type === "qa" && s.question) {
+          wrap.innerHTML += `<h3>Q: ${escapeHtml(s.question)}</h3>`;
         }
-      }
-      throw lastErr || new Error("Unknown fetch error");
-    }
 
-    async function loadTopics() {
-      setStatus("Loading…");
-      el("topicTitle").textContent = "Loading…";
-      el("content").innerHTML = "";
+        const paras = (s.type === "qa") ? (s.answer || []) : (s.paragraphs || []);
+        for (const p of paras) {
+          const para = document.createElement("p");
+          para.className = "para";
+          para.textContent = p;
+          wrap.appendChild(para);
+        }
 
-      // Works for local servers and most hosts.
-      // Also tries /REPO/ for GitHub Pages.
-      const repo = location.pathname.split("/").filter(Boolean)[0];
-      const candidates = [
-        `./${FILENAME}`,
-        `/${FILENAME}`,
-        repo ? `/${repo}/${FILENAME}` : null
-      ].filter(Boolean);
-
-      try {
-        topics = await fetchWithFallback(candidates);
-        el("countHint").textContent = `Topics: ${topics.length}`;
-        setStatus("Ready");
-        randomTopic();
-      } catch (e) {
-        showError(e.message || String(e));
+        contentEl.appendChild(wrap);
       }
     }
 
-    // ===== RENDER =====
-    function randomTopic() {
-      if (!topics.length) return;
+    statusEl.style.display = "none";
+    cardEl.style.display = "block";
+  }
 
-      let idx;
-      do {
-        idx = Math.floor(Math.random() * topics.length);
-      } while (idx === lastIndex && topics.length > 1);
+  function escapeHtml(str){
+    return String(str)
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
+  }
 
-      lastIndex = idx;
-      const t = topics[idx];
-
-      el("topicTitle").textContent = t.title;
-      el("meta").textContent =
-        `Volume ${t.volume} • PDF pages ${t.pdf_page_start}–${t.pdf_page_end}`;
-
-      const content = el("content");
-      content.innerHTML = "";
-
-      (t.paragraphs || []).forEach(p => {
-        const div = document.createElement("p");
-        div.className = "para";
-        div.textContent = p;
-        content.appendChild(div);
-      });
-
-      // Scroll to top of the ONLY scroll container (safe)
-      el("scroll").scrollTo({ top: 0, behavior: "instant" });
+  function showResults(items){
+    resultsList.innerHTML = "";
+    if (!items.length) {
+      resultsList.innerHTML = `<div class="muted">No matches.</div>`;
+      resultsWrap.style.display = "block";
+      return;
     }
+    for (const t of items) {
+      const btn = document.createElement("button");
+      btn.textContent = t.topic;
+      btn.addEventListener("click", ()=> renderTopic(t.topic_id, {push:true}));
+      resultsList.appendChild(btn);
+    }
+    resultsWrap.style.display = "block";
+  }
 
-    // ===== EVENTS =====
-    el("randomBtn").addEventListener("click", randomTopic);
+  function search(q){
+    const nq = normalize(q);
+    if (!nq) {
+      resultsWrap.style.display = "none";
+      return;
+    }
+    // simple contains search; fast enough for ~5k topics
+    const matches = topics
+      .filter(t => normalize(t.topic).includes(nq))
+      .slice(0, 30);
+    showResults(matches);
+  }
 
-    // Swipe anywhere on screen to randomize (doesn't interfere with normal scrolling)
-    let startY = null;
-    window.addEventListener("touchstart", (e) => {
-      if (!e.touches || !e.touches[0]) return;
-      startY = e.touches[0].clientY;
-    }, { passive: true });
+  function randomTopic(){
+    const idx = Math.floor(Math.random() * topics.length);
+    const t = topics[idx];
+    renderTopic(t.topic_id, {push:true});
+  }
 
-    window.addEventListener("touchend", (e) => {
-      if (startY == null) return;
-      const endY = (e.changedTouches && e.changedTouches[0]) ? e.changedTouches[0].clientY : startY;
-      const dy = endY - startY;
-      startY = null;
+  async function load(){
+    try {
+      const res = await fetch(DATA_FILE, {cache:"no-store"});
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      DB = await res.json();
+      topics = DB.topics || [];
+      topicsById = new Map(topics.map(t => [t.topic_id, t]));
+      statusEl.textContent = `Loaded ${topics.length} topics.`;
 
-      // A deliberate swipe (not a small scroll)
-      if (Math.abs(dy) > 60) randomTopic();
-    }, { passive: true });
-
-    // Keyboard for desktop testing
-    window.addEventListener("keydown", (e) => {
-      if ([" ", "ArrowDown", "ArrowUp", "PageDown", "PageUp"].includes(e.key)) {
-        e.preventDefault();
+      // If URL has a topic hash, open it; otherwise pick a random one
+      const m = (location.hash || "").match(/topic=([^&]+)/);
+      if (m) {
+        const id = Number(decodeURIComponent(m[1]));
+        if (topicsById.has(id)) renderTopic(id, {push:true});
+        else randomTopic();
+      } else {
         randomTopic();
       }
-    });
+    } catch (e) {
+      statusEl.textContent = "Failed to load JSON. Make sure you're running a local server (not opening the file directly).";
+      console.error(e);
+    }
+  }
 
-    // Start
-    loadTopics();
-  </script>
+  // UI events
+  qEl.addEventListener("input", (e)=> search(e.target.value));
+  qEl.addEventListener("keydown", (e)=>{
+    if (e.key === "Enter") {
+      const nq = normalize(qEl.value);
+      if (!nq) return;
+      const first = topics.find(t => normalize(t.topic).includes(nq));
+      if (first) renderTopic(first.topic_id, {push:true});
+    }
+  });
+
+  randomBtn.addEventListener("click", randomTopic);
+
+  prevBtn.addEventListener("click", ()=>{
+    if (historyPos > 0) {
+      historyPos -= 1;
+      setNavButtons();
+      renderTopic(historyIds[historyPos], {push:false});
+    }
+  });
+
+  nextBtn.addEventListener("click", ()=>{
+    if (historyPos < historyIds.length - 1) {
+      historyPos += 1;
+      setNavButtons();
+      renderTopic(historyIds[historyPos], {push:false});
+    }
+  });
+
+  copyBtn.addEventListener("click", async ()=>{
+    const url = location.href;
+    try {
+      await navigator.clipboard.writeText(url);
+      toast("Link copied!");
+    } catch {
+      // fallback
+      prompt("Copy this link:", url);
+    }
+  });
+
+  // Keyboard shortcuts
+  document.addEventListener("keydown", (e)=>{
+    if (e.key === "/" && document.activeElement !== qEl) {
+      e.preventDefault(); qEl.focus();
+    }
+    if (e.key.toLowerCase() === "r" && document.activeElement !== qEl) randomTopic();
+    if (e.key === "ArrowLeft" && !prevBtn.disabled) prevBtn.click();
+    if (e.key === "ArrowRight" && !nextBtn.disabled) nextBtn.click();
+  });
+
+  load();
+</script>
 </body>
 </html>
