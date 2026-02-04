@@ -1,224 +1,329 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>Insight – Random Topic</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b0d12" />
+  <title>Insight Random Topic</title>
+
   <style>
     :root {
-      --bg:#0b0d12;
-      --card:#141826;
-      --text:#eef1ff;
-      --muted:#b8c0ff;
-      --accent:#7aa2ff;
+      --bg: #0b0d12;
+      --panel: #141826;
+      --text: #eef1ff;
+      --muted: rgba(238,241,255,.72);
+      --border: rgba(255,255,255,.10);
+      --accent: rgba(122,162,255,.22);
+      --accentBorder: rgba(122,162,255,.40);
     }
 
-    body {
-      margin:0;
-      font-family: system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-      background: radial-gradient(1200px 600px at 50% 0%, #1a2550, var(--bg));
-      color:var(--text);
-      height:100vh;
-      overflow-y: auto;
+    * { box-sizing: border-box; }
 
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    }
+
+    /* One single scroll container for iOS reliability */
+    .app {
+      height: 100dvh; /* iOS 16+ correct viewport */
+      display: flex;
+      flex-direction: column;
+      background: radial-gradient(1200px 600px at 50% 0%, #1a2550, var(--bg));
     }
 
     header {
-      position:fixed;
-      top:0; left:0; right:0;
-      padding:14px 16px;
+      position: sticky; /* safer than fixed on iOS */
+      top: 0;
+      z-index: 10;
+      padding: calc(12px + env(safe-area-inset-top)) 14px 12px;
       backdrop-filter: blur(12px);
-      background: rgba(11,13,18,.6);
-      border-bottom:1px solid rgba(255,255,255,.08);
-      z-index:10;
+      background: rgba(11,13,18,.70);
+      border-bottom: 1px solid var(--border);
     }
 
-    header h1 {
-      font-size:16px;
-      margin:0;
-      font-weight:700;
+    .headerRow {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
     }
 
-    header p {
-      margin:4px 0 0;
-      font-size:12px;
-      color:var(--muted);
+    .titleWrap { display:flex; flex-direction:column; gap:4px; }
+    .title { font-size: 16px; font-weight: 800; letter-spacing:.2px; }
+    .sub { font-size: 12px; color: var(--muted); }
+
+    .btnRow { display:flex; gap:10px; align-items:center; }
+    button {
+      appearance: none;
+      border: 1px solid var(--accentBorder);
+      background: var(--accent);
+      color: var(--text);
+      border-radius: 14px;
+      padding: 11px 14px;
+      font-size: 14px;
+      font-weight: 750;
+      cursor: pointer;
+      user-select: none;
+    }
+    button:active { transform: scale(.98); }
+
+    .pill {
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      color: rgba(238,241,255,.85);
+      padding: 8px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
     }
 
-    main {
-      height:100vh;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding:90px 14px 14px;
+    /* This is the ONLY scroller */
+    .scroll {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 14px;
+      padding-bottom: calc(18px + env(safe-area-inset-bottom));
     }
 
     .card {
-      width: min(820px, 94vw);
-      background: linear-gradient(180deg, rgba(20,24,38,.9), rgba(20,24,38,.7));
-      border:1px solid rgba(255,255,255,.1);
-      border-radius:20px;
-      padding:20px;
-      box-shadow:0 20px 60px rgba(0,0,0,.55);
+      width: min(900px, 100%);
+      margin: 0 auto;
+      background: linear-gradient(180deg, rgba(20,24,38,.92), rgba(20,24,38,.72));
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: 0 18px 60px rgba(0,0,0,.55);
+      padding: 18px;
     }
 
-    .title {
-      font-size:28px;
-      font-weight:800;
-      margin-bottom:10px;
+    .topicTitle {
+      font-size: clamp(22px, 3.2vw, 34px);
+      line-height: 1.15;
+      font-weight: 900;
+      margin: 6px 0 10px;
     }
 
     .meta {
-      font-size:12px;
-      color:var(--muted);
-      margin-bottom:14px;
-    }
-
-    .paragraph {
-      font-size:16px;
-      line-height:1.55;
-      margin-bottom:14px;
-    }
-
-    .controls {
-      position:fixed;
-      bottom:14px;
-      left:0; right:0;
+      font-size: 12px;
+      color: var(--muted);
       display:flex;
-      justify-content:center;
-      gap:12px;
-      z-index:10;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
     }
 
-    button {
-      font-size:15px;
-      font-weight:700;
-      padding:12px 16px;
-      border-radius:14px;
-      border:1px solid rgba(122,162,255,.4);
-      background:rgba(122,162,255,.18);
-      color:var(--text);
-      cursor:pointer;
+    .para {
+      font-size: 16px;
+      line-height: 1.65;
+      margin: 0 0 14px;
+      color: rgba(238,241,255,.92);
     }
 
-    button:active { transform:scale(.97); }
+    .errorBox {
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      border-radius: 14px;
+      padding: 12px;
+      color: rgba(238,241,255,.92);
+      font-size: 14px;
+      line-height: 1.5;
+      margin-top: 10px;
+      word-break: break-word;
+    }
+
+    .footerHint {
+      width: min(900px, 100%);
+      margin: 10px auto 0;
+      color: var(--muted);
+      font-size: 12px;
+      display:flex;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      padding: 0 4px;
+    }
+
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
   </style>
 </head>
+
 <body>
+  <div class="app" id="app">
+    <header>
+      <div class="headerRow">
+        <div class="titleWrap">
+          <div class="title">Insight – Random Topic</div>
+          <div class="sub">Swipe anywhere to randomize • Scroll normally to read</div>
+        </div>
 
-<header>
-  <h1>Insight on the Scriptures</h1>
-  <p>Swipe / tap for a random topic (offline)</p>
-</header>
+        <div class="btnRow">
+          <span class="pill" id="statusPill">Loading…</span>
+          <button id="randomBtn">🎲 Random</button>
+        </div>
+      </div>
+    </header>
 
-<main>
-  <div class="card" id="card">
-    <div class="title" id="title">Loading…</div>
-    <div class="meta" id="meta"></div>
-    <div id="content"></div>
+    <div class="scroll" id="scroll">
+      <div class="card">
+        <div class="topicTitle" id="topicTitle">Loading…</div>
+        <div class="meta" id="meta"></div>
+        <div id="content"></div>
+      </div>
+
+      <div class="footerHint" id="footerHint">
+        <div>Tip: Add to Home Screen for an app-like feel.</div>
+        <div id="countHint">Topics: …</div>
+      </div>
+    </div>
   </div>
-</main>
 
-<div class="controls">
-  <button id="randomBtn">🎲 Random Topic</button>
-</div>
+  <script>
+    // ===== CONFIG =====
+    const FILENAME = "insight_volume1_topics_PARAGRAPHS_CLEAN.json"; // make sure this matches your file
 
-<script>
-let topics = [];
-let lastIndex = -1;
+    // ===== STATE =====
+    let topics = [];
+    let lastIndex = -1;
 
-function showError(msg) {
-  document.getElementById('title').textContent = 'Loading failed';
-  document.getElementById('meta').textContent = '';
-  document.getElementById('content').innerHTML =
-    `<div class="paragraph" style="border:1px solid rgba(255,255,255,.15); padding:12px; border-radius:12px;">
-      <b>Error:</b> ${msg}<br><br>
-      <b>Fix:</b> Make sure you are opening this page over <code>http(s)</code> and that the JSON file is in the same folder as <code>index.html</code>.
-    </div>`;
-}
+    // ===== UI HELPERS =====
+    const el = (id) => document.getElementById(id);
 
-async function fetchWithFallback(paths) {
-  let lastErr = null;
-  for (const p of paths) {
-    try {
-      const res = await fetch(p, { cache: "no-store" });
-      if (!res.ok) throw new Error(`${p} → HTTP ${res.status}`);
-      const data = await res.json();
-      if (!Array.isArray(data) || !data.length) throw new Error(`${p} → JSON loaded but empty/invalid`);
-      return data;
-    } catch (e) {
-      lastErr = e;
+    function setStatus(text) {
+      el("statusPill").textContent = text;
     }
-  }
-  throw lastErr || new Error("Unknown fetch error");
-}
 
-async function loadTopics() {
-  document.getElementById('title').textContent = 'Loading…';
-  document.getElementById('content').innerHTML = '';
+    function showError(message) {
+      setStatus("Error");
+      el("topicTitle").textContent = "Couldn’t load topics";
+      el("meta").textContent = "";
+      el("content").innerHTML = `
+        <div class="errorBox">
+          <b>Error:</b> ${escapeHtml(message)}<br><br>
+          <b>Fix checklist:</b><br>
+          • Open this page over <code>http(s)</code> (not <code>file://</code>)<br>
+          • Put <code>${FILENAME}</code> in the same folder as <code>index.html</code><br>
+          • Verify the JSON opens directly in your browser at <code>.../${FILENAME}</code>
+        </div>
+      `;
+    }
 
-  // ✅ Use the CLEAN file you generated
-  const filename = "insight_volume1_topics_PARAGRAPHS_CLEAN.json";
+    function escapeHtml(str) {
+      return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
 
-  // Try paths that work for:
-  // - same-folder hosting
-  // - GitHub Pages (repo subpath)
-  const repo = location.pathname.split('/').filter(Boolean)[0]; // e.g. "insight-random"
-  const candidates = [
-    `./${filename}`,
-    `/${filename}`,
-    repo ? `/${repo}/${filename}` : null
-  ].filter(Boolean);
+    // ===== DATA LOADING (with fallbacks) =====
+    async function fetchWithFallback(paths) {
+      let lastErr = null;
+      for (const p of paths) {
+        try {
+          const res = await fetch(p, { cache: "no-store" });
+          if (!res.ok) throw new Error(`${p} → HTTP ${res.status}`);
+          const data = await res.json();
+          if (!Array.isArray(data) || !data.length) throw new Error(`${p} → JSON loaded but empty/invalid`);
+          return data;
+        } catch (e) {
+          lastErr = e;
+        }
+      }
+      throw lastErr || new Error("Unknown fetch error");
+    }
 
-  try {
-    topics = await fetchWithFallback(candidates);
-    randomTopic();
-  } catch (e) {
-    showError(e.message || String(e));
-  }
-}
+    async function loadTopics() {
+      setStatus("Loading…");
+      el("topicTitle").textContent = "Loading…";
+      el("content").innerHTML = "";
 
-function randomTopic() {
-  if (!topics.length) return;
+      // Works for local servers and most hosts.
+      // Also tries /REPO/ for GitHub Pages.
+      const repo = location.pathname.split("/").filter(Boolean)[0];
+      const candidates = [
+        `./${FILENAME}`,
+        `/${FILENAME}`,
+        repo ? `/${repo}/${FILENAME}` : null
+      ].filter(Boolean);
 
-  let idx;
-  do {
-    idx = Math.floor(Math.random() * topics.length);
-  } while (idx === lastIndex && topics.length > 1);
+      try {
+        topics = await fetchWithFallback(candidates);
+        el("countHint").textContent = `Topics: ${topics.length}`;
+        setStatus("Ready");
+        randomTopic();
+      } catch (e) {
+        showError(e.message || String(e));
+      }
+    }
 
-  lastIndex = idx;
-  const t = topics[idx];
+    // ===== RENDER =====
+    function randomTopic() {
+      if (!topics.length) return;
 
-  document.getElementById('title').textContent = t.title;
-  document.getElementById('meta').textContent =
-    `Volume ${t.volume} · PDF pages ${t.pdf_page_start}–${t.pdf_page_end}`;
+      let idx;
+      do {
+        idx = Math.floor(Math.random() * topics.length);
+      } while (idx === lastIndex && topics.length > 1);
 
-  const content = document.getElementById('content');
-  content.innerHTML = '';
+      lastIndex = idx;
+      const t = topics[idx];
 
-  (t.paragraphs || []).forEach(p => {
-    const div = document.createElement('div');
-    div.className = 'paragraph';
-    div.textContent = p;
-    content.appendChild(div);
-  });
-}
+      el("topicTitle").textContent = t.title;
+      el("meta").textContent =
+        `Volume ${t.volume} • PDF pages ${t.pdf_page_start}–${t.pdf_page_end}`;
 
-document.getElementById('randomBtn').addEventListener('click', randomTopic);
+      const content = el("content");
+      content.innerHTML = "";
 
-// Swipe support (iPhone)
-let startY = null;
-window.addEventListener('touchstart', e => { startY = e.touches[0].clientY; }, {passive:true});
-window.addEventListener('touchend', e => {
-  if (startY === null) return;
-  const dy = e.changedTouches[0].clientY - startY;
-  startY = null;
-  if (Math.abs(dy) > 40) randomTopic();
-}, {passive:true});
+      (t.paragraphs || []).forEach(p => {
+        const div = document.createElement("p");
+        div.className = "para";
+        div.textContent = p;
+        content.appendChild(div);
+      });
 
-loadTopics();
-</script>
+      // Scroll to top of the ONLY scroll container (safe)
+      el("scroll").scrollTo({ top: 0, behavior: "instant" });
+    }
 
+    // ===== EVENTS =====
+    el("randomBtn").addEventListener("click", randomTopic);
 
+    // Swipe anywhere on screen to randomize (doesn't interfere with normal scrolling)
+    let startY = null;
+    window.addEventListener("touchstart", (e) => {
+      if (!e.touches || !e.touches[0]) return;
+      startY = e.touches[0].clientY;
+    }, { passive: true });
+
+    window.addEventListener("touchend", (e) => {
+      if (startY == null) return;
+      const endY = (e.changedTouches && e.changedTouches[0]) ? e.changedTouches[0].clientY : startY;
+      const dy = endY - startY;
+      startY = null;
+
+      // A deliberate swipe (not a small scroll)
+      if (Math.abs(dy) > 60) randomTopic();
+    }, { passive: true });
+
+    // Keyboard for desktop testing
+    window.addEventListener("keydown", (e) => {
+      if ([" ", "ArrowDown", "ArrowUp", "PageDown", "PageUp"].includes(e.key)) {
+        e.preventDefault();
+        randomTopic();
+      }
+    });
+
+    // Start
+    loadTopics();
+  </script>
 </body>
 </html>
