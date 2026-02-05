@@ -27,6 +27,36 @@
     .pill { display:inline-block; padding: 4px 10px; border: 1px solid #2a2a33; border-radius: 999px; font-size: 12px; color:#cfcfe6; margin-right:8px; }
     .list button { width:100%; text-align:left; padding: 10px 12px; margin-top:8px; }
     .muted { color:#b7b7c8; }
+
+    /* Big bottom random button */
+#bigRandomWrap {
+  position: fixed;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 999;
+}
+
+#bigRandomBtn {
+  font-size: 22px;
+  padding: 18px 34px;
+  border-radius: 999px;
+  border: 2px solid #3a3a55;
+  background: linear-gradient(135deg, #3b3bff, #6b6bff);
+  color: white;
+  cursor: pointer;
+  box-shadow: 0 10px 30px rgba(80,80,255,.35);
+}
+
+#bigRandomBtn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 14px 40px rgba(80,80,255,.5);
+}
+
+#bigRandomBtn:active {
+  transform: scale(0.98);
+}
+
   </style>
 </head>
 <body>
@@ -209,7 +239,15 @@
     if (e.key.toLowerCase() === "r" && document.activeElement !== qEl) pickRandom();
   });
 
+  document.getElementById("bigRandomBtn")
+  .addEventListener("click", pickRandom);
+
+
   load();
 </script>
+  <div id="bigRandomWrap">
+  <button id="bigRandomBtn">🎲 Random Topic</button>
+</div>
+
 </body>
 </html>
