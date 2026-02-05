@@ -230,7 +230,9 @@
       if (first) showTopic(first);
     }
   });
-
+  document.getElementById("bigRandomBtn")
+    .addEventListener("click", pickRandom);
+  
   randomBtn.addEventListener("click", pickRandom);
 
   // Keyboard shortcuts: / focus search, R random
@@ -238,9 +240,6 @@
     if (e.key === "/" && document.activeElement !== qEl) { e.preventDefault(); qEl.focus(); }
     if (e.key.toLowerCase() === "r" && document.activeElement !== qEl) pickRandom();
   });
-
-  document.getElementById("bigRandomBtn")
-  .addEventListener("click", pickRandom);
 
 
   load();
