@@ -19,7 +19,8 @@
       background: #171723; color: #f4f4f6; cursor: pointer;
     }
     button:hover{ background:#1c1c2b; }
-    main { padding: 18px 16px 80px; max-width: 980px; margin: 0 auto; }
+    button:disabled{ opacity:.55; cursor:not-allowed; }
+    main { padding: 18px 16px 140px; max-width: 980px; margin: 0 auto; } /* extra bottom padding for fixed button bar */
     .card { background:#12121a; border:1px solid #242433; border-radius:14px; padding:14px; margin-top:14px; }
     .topic-title { font-size: 26px; margin: 0; }
     .meta { color:#b7b7c8; font-size: 13px; margin-top: 6px; }
@@ -27,47 +28,42 @@
     .pill { display:inline-block; padding: 4px 10px; border: 1px solid #2a2a33; border-radius: 999px; font-size: 12px; color:#cfcfe6; margin-right:8px; }
     .list button { width:100%; text-align:left; padding: 10px 12px; margin-top:8px; }
     .muted { color:#b7b7c8; }
+    code { background:#0f0f16; border:1px solid #242433; padding:2px 6px; border-radius:8px; }
 
-    /* Big bottom random button */
-#bigRandomWrap {
-  position: fixed;
-  bottom: 16px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 999;
-}
-
-#bigRandomBtn {
-  font-size: 22px;
-  padding: 18px 34px;
-  border-radius: 999px;
-  border: 2px solid #3a3a55;
-  background: linear-gradient(135deg, #3b3bff, #6b6bff);
-  color: white;
-  cursor: pointer;
-  box-shadow: 0 10px 30px rgba(80,80,255,.35);
-}
-
-#bigRandomBtn:hover {
-  transform: scale(1.05);
-  box-shadow: 0 14px 40px rgba(80,80,255,.5);
-}
-
-#bigRandomBtn:active {
-  transform: scale(0.98);
-}
-
+    /* Big bottom random button bar */
+    #bigRandomWrap{
+      position: fixed;
+      left: 0; right: 0; bottom: 0;
+      padding: 14px 16px;
+      background: rgba(11,11,15,.92);
+      backdrop-filter: blur(10px);
+      border-top: 1px solid #222;
+      display: flex;
+      justify-content: center;
+      z-index: 999;
+    }
+    #bigRandomBtn{
+      width: min(720px, 100%);
+      font-size: 22px;
+      padding: 18px 24px;
+      border-radius: 14px;
+      border: 1px solid #2a2a33;
+      background: #2b2bff;
+      color: #fff;
+      cursor: pointer;
+    }
+    #bigRandomBtn:hover{ filter: brightness(1.05); }
+    #bigRandomBtn:active{ transform: scale(0.99); }
   </style>
 </head>
 <body>
 <header>
-  <h1>Insight on the Scriptures — Random Topic</h1>
+  <h1>Insight on the Scriptures — Topic Picker</h1>
   <div class="row">
     <input id="q" type="search" placeholder="Search topics… (e.g., Jehovah, Abaddon, Faith)" autocomplete="off" />
-    <button id="randomBtn">🎲 Random</button>
     <button id="openBtn" disabled>Open on JW.org</button>
   </div>
-  <div class="meta">Uses your <code>it_E_topics.json</code> (topics + JW.org finder links).</div>
+  <div class="meta">Uses your <code>it_E_topics.json</code> (topics + JW.org finder links). Press <code>/</code> to focus search.</div>
 </header>
 
 <main>
@@ -80,12 +76,25 @@
   </div>
 
   <div id="resultsCard" class="card" style="display:none;">
-    <div class="meta">Search results (click to open)</div>
+    <div class="meta">Search results (click a topic)</div>
     <div id="results" class="list"></div>
+  </div>
+
+  <div class="card">
+    <div class="meta">
+      If you get stuck on “Loading topics…”, make sure you are running a local server:<br/>
+      <code>python3 -m http.server 8000</code> then open <code>http://localhost:8000</code>
+    </div>
   </div>
 </main>
 
+<!-- Big bottom random button -->
+<div id="bigRandomWrap">
+  <button id="bigRandomBtn">🎲 Random Topic</button>
+</div>
+
 <script>
+  // IMPORTANT: This file must be in the same folder as index.html
   const DATA_FILE = "it_E_topics.json";
 
   let topics = [];
@@ -101,7 +110,6 @@
   const resultsEl = $("results");
   const qEl = $("q");
   const openBtn = $("openBtn");
-  const randomBtn = $("randomBtn");
 
   function normalize(s){
     return (s || "")
@@ -109,6 +117,15 @@
       .replace(/[’‘]/g,"'")
       .replace(/\s+/g," ")
       .trim();
+  }
+
+  function escapeHtml(str){
+    return String(str)
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
   }
 
   function pickRandom(){
@@ -122,14 +139,12 @@
     const name = t.display_topic || t.topic || "(Untitled)";
     titleEl.textContent = name;
 
-    // Pills
     const docCount = (t.documents || []).length;
     pillsEl.innerHTML = `
       <span class="pill">Topic ID: ${t.topic_id}</span>
       <span class="pill">Docs: ${docCount}</span>
     `;
 
-    // Links list (some topics have multiple docs)
     const docs = t.documents || [];
     if (!docs.length) {
       linksEl.innerHTML = `<span class="muted">No linked documents found for this topic.</span>`;
@@ -145,31 +160,22 @@
         const u = d.jw_org_finder_url || "#";
         const title = d.title || `Document ${i+1}`;
         const pages = Array.isArray(d.page_range) ? ` • pages ${d.page_range[0]}–${d.page_range[1]}` : "";
+        const docid = (d.meps_document_id ?? "?");
         return `<div style="margin-top:8px;">
           <a href="${u}" target="_blank" rel="noopener noreferrer">${escapeHtml(title)}</a>
-          <span class="muted">• docid ${d.meps_document_id ?? "?"}${pages}</span>
+          <span class="muted">• docid ${docid}${pages}</span>
         </div>`;
       }).join("");
 
       linksEl.innerHTML = items;
     }
 
-    // hide search results
     resultsCard.style.display = "none";
     topicCard.style.display = "block";
     statusEl.style.display = "none";
 
     // shareable hash
     location.hash = `#topic=${encodeURIComponent(String(t.topic_id))}`;
-  }
-
-  function escapeHtml(str){
-    return String(str)
-      .replaceAll("&","&amp;")
-      .replaceAll("<","&lt;")
-      .replaceAll(">","&gt;")
-      .replaceAll('"',"&quot;")
-      .replaceAll("'","&#039;");
   }
 
   function showResults(list){
@@ -202,10 +208,11 @@
       const res = await fetch(DATA_FILE, { cache: "no-store" });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const db = await res.json();
+
       topics = db.topics || [];
       statusEl.textContent = `Loaded ${topics.length} topics.`;
 
-      // open from URL hash if present
+      // Open from URL hash if present
       const m = (location.hash || "").match(/topic=([^&]+)/);
       if (m) {
         const id = Number(decodeURIComponent(m[1]));
@@ -217,10 +224,12 @@
       }
     } catch (e) {
       console.error(e);
-      statusEl.textContent = "Could not load it_E_topics.json. Make sure you’re running a local server (not double-clicking the HTML).";
+      statusEl.textContent =
+        "Could not load it_E_topics.json. Make sure index.html and it_E_topics.json are in the SAME folder, and run: python3 -m http.server 8000";
     }
   }
 
+  // Events
   qEl.addEventListener("input", (e) => search(e.target.value));
   qEl.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
@@ -230,9 +239,6 @@
       if (first) showTopic(first);
     }
   });
-  document.getElementById("bigRandomBtn").addEventListener("click", pickRandom);
-  
-  randomBtn.addEventListener("click", pickRandom);
 
   // Keyboard shortcuts: / focus search, R random
   document.addEventListener("keydown", (e)=>{
@@ -240,12 +246,13 @@
     if (e.key.toLowerCase() === "r" && document.activeElement !== qEl) pickRandom();
   });
 
+  // Safe hookup for big bottom button
+  document.addEventListener("DOMContentLoaded", () => {
+    const big = document.getElementById("bigRandomBtn");
+    if (big) big.addEventListener("click", pickRandom);
+  });
 
   load();
 </script>
-  <div id="bigRandomWrap">
-  <button id="bigRandomBtn">🎲 Random Topic</button>
-</div>
-
 </body>
 </html>
